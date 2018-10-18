@@ -1,0 +1,449 @@
+# ----------------------------------------------------------------------
+# Nano protocol definition for Kaitai
+# https://github.com/nanocurrency/protocol
+# Protocol version: 16
+# ----------------------------------------------------------------------
+meta:
+  id: nano
+  title: Nano Network Protocol
+  license: BSD 2-Clause
+  endian: le
+seq:
+  - id: header
+    type: message_header
+  - id: body
+    doc: Message body
+    type:
+      switch-on: header.message_type
+      cases:
+        'enum_msgtype::keepalive': msg_keepalive
+        'enum_msgtype::publish': msg_publish
+        'enum_msgtype::confirm_req': msg_confirm_req
+        'enum_msgtype::confirm_ack': msg_confirm_ack
+        'enum_msgtype::bulk_pull': msg_bulk_pull        
+        'enum_msgtype::bulk_push': msg_bulk_push
+        'enum_msgtype::frontier_req': msg_frontier_req
+        'enum_msgtype::bulk_pull_blocks': msg_bulk_pull_blocks
+        'enum_msgtype::node_id_handshake': msg_node_id_handshake
+        'enum_msgtype::bulk_pull_account': msg_bulk_pull_account
+        _: ignore_until_eof
+instances:
+  const_block_zero:
+    size: 32
+    contents: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  const_block_zero_16:
+    size: 16
+    contents: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+enums:
+  enum_blocktype:
+    0x00: invalid
+    0x01: not_a_block
+    0x02: send
+    0x03: receive
+    0x04: open
+    0x05: change
+    0x06: state
+  enum_msgtype:
+    0x00: invalid
+    0x01: not_a_type
+    0x02: keepalive
+    0x03: publish
+    0x04: confirm_req
+    0x05: confirm_ack
+    0x06: bulk_pull
+    0x07: bulk_push
+    0x08: frontier_req
+    0x09: bulk_pull_blocks
+    0x0a: node_id_handshake
+    0x0b: bulk_pull_account
+  enum_bulk_pull_account:
+    0x00: pending_hash_and_amount
+    0x01: pending_address_only
+    0x02: pending_hash_amount_and_address
+
+types:
+
+  # -------------------------------------------------------------------
+  # Common header for udp and tcp messages
+  # -------------------------------------------------------------------  
+  message_header:
+    seq:
+      - id: magic
+        contents: R
+        doc: Protocol identifier. Always 'R'.
+      - id: network_id
+        type: u1
+        doc: Network ID 'A', 'B' or 'C' for test, beta or live network respectively.
+      - id: version_max
+        type: u1
+        doc: Maximum version supported by the sending node
+      - id: version_using
+        type: u1
+        doc: Version used by the sending node
+      - id: version_min
+        type: u1
+        doc: Minimum version supported by the sending node
+      - id: message_type
+        type: u1
+        enum: enum_msgtype
+        doc: Message type
+      - id: extensions
+        type: u2le
+        doc: Extensions bitfield
+    instances:
+      block_type_int:
+        value: (extensions & 0x0f00) >> 8
+      block_type:
+        value: (extensions & 0x0f00) >> 8
+        enum: 'enum_blocktype'
+      query_flag:
+        value: (extensions & 0x0001)
+      response_flag:
+        value: (extensions & 0x0002)
+
+  # Catch-all that ignores until eof
+  ignore_until_eof:
+    seq:
+      - id: empty
+        type: u1
+        repeat: until
+        repeat-until: _io.eof
+        if: not _io.eof
+
+  # -------------------------------------------------------------------
+  # Block definitions
+  # -------------------------------------------------------------------
+
+  block_send:
+    seq:
+     - id: previous
+       size: 32
+       doc: Hash of the previous block
+     - id: destination
+       size: 32
+       doc: Public key of destination account
+     - id: balance
+       size: 16
+       doc: 128-bit big endian balance
+     - id: signature
+       size: 64
+       doc: Signature
+     - id: work
+       type: u8le
+       doc: Proof of work
+
+  block_receive:
+    seq:
+     - id: previous
+       size: 32
+       doc: Hash of the previous block
+     - id: source
+       size: 32
+       doc: Public key of sending account
+     - id: signature
+       size: 64
+       doc: Signature
+     - id: work
+       type: u8le
+       doc: Proof of work
+
+  block_open:
+    seq:
+     - id: source
+       size: 32
+       doc: Hash of the source block
+     - id: representative
+       size: 32
+       doc: Public key of initial representative account
+     - id: account
+       size: 32
+       doc: Public key of account being opened
+     - id: signature
+       size: 64
+       doc: Signature
+     - id: work
+       type: u8le
+       doc: Proof of work
+
+  block_change:
+    seq:
+     - id: previous
+       size: 32
+       doc: Hash of the previous block
+     - id: representative
+       size: 32
+       doc: Public key of new representative account
+     - id: signature
+       size: 64
+       doc: Signature
+     - id: work
+       type: u8le
+       doc: Proof of work
+
+  block_state:
+    seq:
+     - id: account
+       size: 32
+       doc: Public key of account represented by this state block
+     - id: previous
+       size: 32
+       doc: Hash of previous block
+     - id: representative
+       size: 32
+       doc: Public key of the representative account
+     - id: balance
+       size: 16
+       doc: 128-bit big endian balance
+     - id: link
+       size: 32
+       doc: Pairing send's block hash (open/receive), 0 (change) or destination public key (send)
+     - id: signature
+       size: 64
+       doc: Signature
+     - id: work
+       type: u8be
+       doc: Proof of work (big endian)
+    doc: State block
+
+  # The block selector takes an integer argument representing the
+  # block type. This setup makes it possible to reuse the selector
+  # both when deserializing block types as well as when extracting the
+  # block type from the header extensions.
+  # Note that enum arguments are not yet supported, hence the to_i casts.
+  block_selector:
+    doc: Selects a block based on the argument
+    params:
+      - id: arg_block_type
+        type: u1
+    seq:
+      - id: block
+        type:
+          switch-on: arg_block_type
+          cases:
+            'enum_blocktype::send.to_i': block_send
+            'enum_blocktype::receive.to_i': block_receive
+            'enum_blocktype::open.to_i': block_open
+            'enum_blocktype::change.to_i': block_change
+            'enum_blocktype::state.to_i': block_state
+            _: ignore_until_eof
+
+  # --------------------------------------------------------------------
+  # UDP MESSAGES
+  # --------------------------------------------------------------------
+
+  peer:
+    doc: A peer entry in the keepalive message
+    seq:
+      - id: address
+        size: 16
+      - id: port
+        type: u2le
+
+  msg_keepalive:
+    doc: A list of 8 peers, some of which may be all-zero
+    seq:
+      - id: peers
+        type: peer
+        repeat: until
+        repeat-until: _index == 8 or _io.eof
+        if: not _io.eof
+
+  vote_common:
+    doc: Common data shared by block votes and vote-by-hash votes
+    seq:
+      - id: account
+        size: 32
+      - id: signature
+        size: 64
+      - id: sequence
+        type: u8le
+
+  vote_by_hash:
+    doc: A sequence of up to 12 hashes, terminated by EOF.
+    seq:
+      - id: hashes
+        size: 32
+        repeat: until
+        repeat-until: _index == 12 or _io.eof
+        if: not _io.eof
+
+  msg_confirm_req:
+    doc: Requests confirmation of the given block
+    seq:
+      - id: body
+        type: block_selector(_root.header.block_type_int)
+
+  msg_publish:
+    doc: Publish the given block
+    seq:
+      - id: body
+        type: block_selector(_root.header.block_type_int)
+
+  msg_confirm_ack:
+    doc: Signed confirmation of a block or a list of block hashes
+    seq:
+      - id: common
+        type: vote_common
+      - id: votebyhash
+        if: _root.header.block_type == enum_blocktype::not_a_block
+        type: vote_by_hash
+      - id: block
+        if: _root.header.block_type != enum_blocktype::not_a_block
+        type: block_selector(_root.header.block_type_int)
+
+  # Note that graphviz will display query/response as consequtive entries
+  # since they can both be present at the same time.
+  msg_node_id_handshake:
+    seq:
+      - id: query
+        if: _root.header.query_flag == 1
+        type: node_id_query        
+      - id: response
+        if: _root.header.response_flag == 1
+        type: node_id_response
+
+  node_id_query:
+    seq:
+      - id: node_id
+        size: 32
+        doc: Public key used as node id
+
+  node_id_response:
+    seq:
+      - id: account
+        size: 32
+        doc: Account
+      - id: signature
+        size: 64
+        doc: Signature
+
+  # --------------------------------------------------------------------
+  # BOOTSTRAP MESSAGES
+  # --------------------------------------------------------------------
+
+  msg_bulk_pull_account:
+    doc: Bulk pull account request
+    seq:
+      - id: account
+        size: 32
+        doc: Account public key
+      - id: minimum_amount
+        size: 16
+        doc: 128-bit big endian minimum amount
+      - id: flags
+        type: u1
+        enum: enum_bulk_pull_account
+  
+  bulk_pull_account_response:
+    doc: |
+      Response of the msg_bulk_pull_account message. The structure depends on the 
+      flags that was passed to the query.
+    params:
+      - id: flags
+        type: u1
+    seq:
+      - id: entry
+        type: bulk_pull_account_entry(flags)
+        repeat: until
+        repeat-until: _io.eof or entry[_index].hash == _root.const_block_zero
+    types:
+      bulk_pull_account_entry:
+        params:
+          - id: flags
+            type: u1        
+        instances:
+          pending_address_only:
+            value: flags == enum_bulk_pull_account::pending_address_only.to_i
+          pending_include_address:
+            value: flags == enum_bulk_pull_account::pending_hash_amount_and_address.to_i
+        seq:
+          - id: hash
+            size: 32
+            if: not pending_address_only
+          - id: amount
+            size: 16
+            if: not pending_address_only
+          - id: source
+            size: 32
+            if: not pending_address_only or pending_include_address
+            
+  msg_bulk_pull:
+    doc: Bulk pull request
+    seq:
+      - id: start
+        size: 32
+        doc: Account public key or block hash
+      - id: end
+        size: 32
+        doc: End block hash. May be zero.
+
+  bulk_pull_response:
+    doc: Response of the msg_bulk_pull request.
+    seq:
+      - id: entry
+        type: bulk_pull_entry
+        repeat: until
+        repeat-until: _io.eof or entry[_index].block_type == enum_blocktype::not_a_block.to_i
+    types:
+      bulk_pull_entry:
+        seq:
+          - id: block_type
+            type: u1
+          - id: block
+            type: block_selector(block_type)
+
+  msg_bulk_push:
+    doc: Bulk push request
+    seq:
+      - id: entry
+        type: bulk_push_entry
+        repeat: until
+        repeat-until: _io.eof or entry[_index].block_type == enum_blocktype::not_a_block.to_i
+    types:
+      bulk_push_entry:
+        seq:
+          - id: block_type
+            type: u1
+          - id: block
+            type: block_selector(block_type)
+
+  bulk_push_response:
+    doc: The msg_bulk_push request does not have a response.
+
+  msg_bulk_pull_blocks:
+    doc: Deprecated. The server will respond with a single enum_blocktype::not_a_block byte.
+    seq:
+      - id: block_type
+        type: u1
+
+  msg_frontier_req:
+    doc: Request frontiers (account chain head blocks) from a remote node
+    seq:
+      - id: start
+        size: 32
+        doc: Public key of start account
+      - id: age
+        type: u4le
+        doc: Maximum age of included account. If 0xffffffff, turn off age filtering.
+      - id: count
+        type: u4le
+        doc: Maximum number of accounts to include. If 0xffffffff, turn off count limiting.
+
+  frontier_response:
+    doc: |
+      Response of the msg_frontier_req TCP request. An all-zero account and frontier_hash signifies the end of the result.
+    seq:
+      - id: entry
+        type: frontier_entry
+        repeat: until
+        repeat-until: _io.eof or entry[_index].frontier_hash == _root.const_block_zero
+    types:
+      frontier_entry:
+        seq:
+          - id: account
+            size: 32
+            doc: Public key of account.
+          - id: frontier_hash
+            size: 32
+            doc: Hash of the head block of the account chain.
