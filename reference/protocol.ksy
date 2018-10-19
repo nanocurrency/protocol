@@ -61,6 +61,10 @@ enums:
     0x00: pending_hash_and_amount
     0x01: pending_address_only
     0x02: pending_hash_amount_and_address
+  enum_network:
+    0x41: network_test
+    0x42: network_beta
+    0x43: network_live
 
 types:
 
@@ -74,6 +78,7 @@ types:
         doc: Protocol identifier. Always 'R'.
       - id: network_id
         type: u1
+        enum: enum_network
         doc: Network ID 'A', 'B' or 'C' for test, beta or live network respectively.
       - id: version_max
         type: u1
