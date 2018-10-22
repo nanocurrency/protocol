@@ -31,9 +31,6 @@ instances:
   const_block_zero:
     size: 32
     contents: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-  const_block_zero_16:
-    size: 16
-    contents: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 enums:
   enum_blocktype:
@@ -242,8 +239,10 @@ types:
     seq:
       - id: address
         size: 16
+        doc: ipv6 address, or ipv6-mapped ipv4 address.
       - id: port
         type: u2le
+        doc: Port number. Default port is 7075.
 
   msg_keepalive:
     doc: A list of 8 peers, some of which may be all-zero
