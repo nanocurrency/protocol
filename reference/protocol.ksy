@@ -1,7 +1,6 @@
 # ----------------------------------------------------------------------
 # Nano protocol definition for Kaitai
 # https://github.com/nanocurrency/protocol
-# Protocol version: 16
 # ----------------------------------------------------------------------
 meta:
   id: nano
@@ -10,9 +9,10 @@ meta:
   endian: le
 seq:
   - id: header
+    doc: Message header with message type, version information and message-specific extension bits.
     type: message_header
   - id: body
-    doc: Message body
+    doc: Message body whose content depends on block type in the header.
     type:
       switch-on: header.message_type
       cases:
@@ -31,8 +31,10 @@ instances:
   const_block_zero:
     size: 32
     contents: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-
 enums:
+  # The protocol version covered by this specification
+  protocol_version:
+    15: value
   enum_blocktype:
     0x00: invalid
     0x01: not_a_block
@@ -99,10 +101,20 @@ types:
       block_type:
         value: (extensions & 0x0f00) >> 8
         enum: 'enum_blocktype'
+        doc: |
+          The block type determines what block is embedded in the message.
+          For some message types, block type is not relevant and the block type
+          is set to "invalid" or "not_a_block"
       query_flag:
         value: (extensions & 0x0001)
+        doc: |
+          If set, this is a node_id_handshake query. This maybe be set at the
+          same time as the response_flag.
       response_flag:
         value: (extensions & 0x0002)
+        doc: |
+          If set, this is a node_id_handshake response. This maybe be set at the
+          same time as the query_flag.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
@@ -130,7 +142,7 @@ types:
        doc: 128-bit big endian balance
      - id: signature
        size: 64
-       doc: Signature
+       doc: ed25519 signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -145,7 +157,7 @@ types:
        doc: Public key of sending account
      - id: signature
        size: 64
-       doc: Signature
+       doc: ed25519 signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -163,7 +175,7 @@ types:
        doc: Public key of account being opened
      - id: signature
        size: 64
-       doc: Signature
+       doc: ed25519 signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -178,7 +190,7 @@ types:
        doc: Public key of new representative account
      - id: signature
        size: 64
-       doc: Signature
+       doc: ed25519 signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -202,7 +214,7 @@ types:
        doc: Pairing send's block hash (open/receive), 0 (change) or destination public key (send)
      - id: signature
        size: 64
-       doc: Signature
+       doc: ed25519 signature
      - id: work
        type: u8be
        doc: Proof of work (big endian)
@@ -245,7 +257,7 @@ types:
         doc: Port number. Default port is 7075.
 
   msg_keepalive:
-    doc: A list of 8 peers, some of which may be all-zero
+    doc: A list of 8 peers, some of which may be all-zero.
     seq:
       - id: peers
         type: peer
@@ -299,6 +311,7 @@ types:
   # Note that graphviz will display query/response as consequtive entries
   # since they can both be present at the same time.
   msg_node_id_handshake:
+    doc: A node ID handshake request and/or response.
     seq:
       - id: query
         if: _root.header.query_flag == 1
@@ -311,7 +324,7 @@ types:
     seq:
       - id: node_id
         size: 32
-        doc: Public key used as node id
+        doc: Public key used as node id.
 
   node_id_response:
     seq:
@@ -327,14 +340,14 @@ types:
   # --------------------------------------------------------------------
 
   msg_bulk_pull_account:
-    doc: Bulk pull account request
+    doc: Bulk pull account request.
     seq:
       - id: account
         size: 32
-        doc: Account public key
+        doc: Account public key.
       - id: minimum_amount
         size: 16
-        doc: 128-bit big endian minimum amount
+        doc: 128-bit big endian minimum amount.
       - id: flags
         type: u1
         enum: enum_bulk_pull_account
@@ -373,11 +386,11 @@ types:
             if: not pending_address_only or pending_include_address
             
   msg_bulk_pull:
-    doc: Bulk pull request
+    doc: Bulk pull request.
     seq:
       - id: start
         size: 32
-        doc: Account public key or block hash
+        doc: Account public key or block hash.
       - id: end
         size: 32
         doc: End block hash. May be zero.
@@ -398,7 +411,7 @@ types:
             type: block_selector(block_type)
 
   msg_bulk_push:
-    doc: Bulk push request
+    doc: Bulk push request.
     seq:
       - id: entry
         type: bulk_push_entry
