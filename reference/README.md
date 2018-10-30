@@ -1,8 +1,8 @@
-# Nano Protocol Definition
+# Nano Protocol Specification
 
 This directory hosts a formal specification of the Nano network protocol.
 
-The definition is written in [Kaitai](https://kaitai.io), from which parsers and diagrams can be generated.
+The specification is written in [Kaitai](https://kaitai.io), from which parsers and diagrams can be generated.
 
 ### Generate code
 
