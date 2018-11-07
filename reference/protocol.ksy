@@ -154,7 +154,7 @@ types:
        doc: Hash of the previous block
      - id: source
        size: 32
-       doc: Public key of sending account
+       doc: Hash of the source send block
      - id: signature
        size: 64
        doc: ed25519 signature
@@ -166,7 +166,7 @@ types:
     seq:
      - id: source
        size: 32
-       doc: Hash of the source block
+       doc: Hash of the source send block
      - id: representative
        size: 32
        doc: Public key of initial representative account
