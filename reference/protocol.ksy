@@ -314,23 +314,23 @@ types:
     doc: A node ID handshake request and/or response.
     seq:
       - id: query
-        if: _root.header.query_flag == 1
+        if: _root.header.query_flag != 0
         type: node_id_query        
       - id: response
-        if: _root.header.response_flag == 1
+        if: _root.header.response_flag != 0
         type: node_id_response
 
   node_id_query:
     seq:
-      - id: node_id
+      - id: cookie
         size: 32
-        doc: Public key used as node id.
+        doc: Per-endpoint random number
 
   node_id_response:
     seq:
       - id: account
         size: 32
-        doc: Account
+        doc: Account (node id)
       - id: signature
         size: 64
         doc: Signature
@@ -411,7 +411,11 @@ types:
             type: block_selector(block_type)
 
   msg_bulk_push:
-    doc: Bulk push request.
+    doc: |
+      A bulk push is equivalent to an unsolicited bulk pull response.
+      If a node knows about an account a peer doesn't, the node sends
+      its local blocks for that account to the peer. The stream of
+      blocks ends with a sentinel block of type enum_blocktype::not_a_block.
     seq:
       - id: entry
         type: bulk_push_entry
