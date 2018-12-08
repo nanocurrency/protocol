@@ -21,7 +21,7 @@ Run the following commands to generate a PNG diagram:
 
 ```
 kaitai-struct-compiler protocol.ksy --outdir diagram -t graphviz
-dot output/graphviz/nano.dot -v -Tpng -o diagram/nano.png
+dot diagram/nano.dot -v -Tpng -o diagram/nano.png
 ```
 
 # Protocol diagram

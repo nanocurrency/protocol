@@ -115,6 +115,12 @@ types:
         doc: |
           If set, this is a node_id_handshake response. This maybe be set at the
           same time as the query_flag.
+      extended_params_present:
+        value: (extensions & 0x0001)
+        doc: |
+          Since protocol version 15.
+          May be set for "bulk_pull" messages.
+          If set, the bulk_pull message contain extended parameters.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
@@ -394,6 +400,21 @@ types:
       - id: end
         size: 32
         doc: End block hash. May be zero.
+      - id: extended
+        type: extended_parameters
+        if: _root.header.extended_params_present != 0
+    types:
+      extended_parameters:
+        seq:
+          - id: zero
+            type: u1
+            doc: Must be 0
+          - id: count
+            type: u4le
+            doc: little endian "count" parameter to limit the response set.
+          - id: reserved
+            size: 3
+            doc: Reserved extended parameter bytes
 
   bulk_pull_response:
     doc: Response of the msg_bulk_pull request.
