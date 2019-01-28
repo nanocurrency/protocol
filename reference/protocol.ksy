@@ -34,7 +34,7 @@ instances:
 enums:
   # The protocol version covered by this specification
   protocol_version:
-    15: value
+    16: value
   enum_blocktype:
     0x00: invalid
     0x01: not_a_block
@@ -290,16 +290,37 @@ types:
         repeat-until: _index == 12 or _io.eof
         if: not _io.eof
 
-  msg_confirm_req:
-    doc: Requests confirmation of the given block
+  hash_pair:
+    doc: A general purpose pair of 32-byte hash values
     seq:
-      - id: body
-        type: block_selector(_root.header.block_type_int)
+      - id: first
+        size: 32
+        doc: First hash in pair
+      - id: second
+        size: 32
+        doc: Second hash in pair
 
-  msg_publish:
-    doc: Publish the given block
+  confirm_request_by_hash:
+    doc: A sequence of hash,root pairs
     seq:
-      - id: body
+      - id: count
+        type: u8
+        doc: Number of hash,root pairs
+      - id: pairs
+        doc: Up to "count" pairs of hash (first) and root (second)
+        type: hash_pair
+        repeat: until
+        repeat-until: _index == count or _io.eof
+        if: not _io.eof
+
+  msg_confirm_req:
+    doc: Requests confirmation of the given block or list of root/hash pairs
+    seq:
+      - id: reqbyhash
+        if: _root.header.block_type == enum_blocktype::not_a_block
+        type: confirm_request_by_hash
+      - id: block
+        if: _root.header.block_type != enum_blocktype::not_a_block
         type: block_selector(_root.header.block_type_int)
 
   msg_confirm_ack:
@@ -312,6 +333,12 @@ types:
         type: vote_by_hash
       - id: block
         if: _root.header.block_type != enum_blocktype::not_a_block
+        type: block_selector(_root.header.block_type_int)
+
+  msg_publish:
+    doc: Publish the given block
+    seq:
+      - id: body
         type: block_selector(_root.header.block_type_int)
 
   # Note that graphviz will display query/response as consequtive entries
