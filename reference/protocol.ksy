@@ -34,7 +34,7 @@ instances:
 enums:
   # The protocol version covered by this specification
   protocol_version:
-    16: value
+    17: value
   enum_blocktype:
     0x00: invalid
     0x01: not_a_block
@@ -96,6 +96,11 @@ types:
         type: u2le
         doc: Extensions bitfield
     instances:
+      item_count_int:
+        value: (extensions & 0xf000) >> 12
+        doc: |
+          Since protocol v17. For confirm_ack vote-by-hash, this is the number of hashes
+          in the body. For confirm_req request-by-hash, this is the number of hash+root pairs.
       block_type_int:
         value: (extensions & 0x0f00) >> 8
       block_type:
@@ -303,9 +308,6 @@ types:
   confirm_request_by_hash:
     doc: A sequence of hash,root pairs
     seq:
-      - id: count
-        type: u8
-        doc: Number of hash,root pairs
       - id: pairs
         doc: Up to "count" pairs of hash (first) and root (second)
         type: hash_pair
