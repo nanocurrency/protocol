@@ -308,9 +308,6 @@ types:
   confirm_request_by_hash:
     doc: A sequence of hash,root pairs
     seq:
-      - id: count
-        type: u8
-        doc: Number of hash,root pairs
       - id: pairs
         doc: Up to "count" pairs of hash (first) and root (second)
         type: hash_pair
