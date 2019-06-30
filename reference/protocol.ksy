@@ -309,10 +309,10 @@ types:
     doc: A sequence of hash,root pairs
     seq:
       - id: pairs
-        doc: Up to "count" pairs of hash (first) and root (second)
+        doc: Up to "count" pairs of hash (first) and root (second), where count is read from header.
         type: hash_pair
         repeat: until
-        repeat-until: _index == count or _io.eof
+        repeat-until: _index == _root.header.item_count_int or _io.eof
         if: not _io.eof
 
   msg_confirm_req:
