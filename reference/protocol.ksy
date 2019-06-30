@@ -97,7 +97,7 @@ types:
         doc: Extensions bitfield
     instances:
       item_count_int:
-        value: (extensions & 0xf000) >> 8
+        value: (extensions & 0xf000) >> 12
         doc: |
           Since protocol v17. For confirm_ack vote-by-hash, this is the number of hashes
           in the body. For confirm_req request-by-hash, this is the number of hash+root pairs.
