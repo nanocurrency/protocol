@@ -26,6 +26,8 @@ seq:
         'enum_msgtype::bulk_pull_blocks': msg_bulk_pull_blocks
         'enum_msgtype::node_id_handshake': msg_node_id_handshake
         'enum_msgtype::bulk_pull_account': msg_bulk_pull_account
+        'enum_msgtype::telemetry_req': msg_telemetry_req
+        'enum_msgtype::telemetry_ack': msg_telemetry_ack
         _: ignore_until_eof
 instances:
   const_block_zero:
@@ -56,6 +58,8 @@ enums:
     0x09: bulk_pull_blocks
     0x0a: node_id_handshake
     0x0b: bulk_pull_account
+    0x0c: telemetry_req
+    0x0d: telemetry_ack
   enum_bulk_pull_account:
     0x00: pending_hash_and_amount
     0x01: pending_address_only
@@ -126,6 +130,11 @@ types:
           Since protocol version 15.
           May be set for "bulk_pull" messages.
           If set, the bulk_pull message contain extended parameters.
+      size:
+        value: (extensions & 0x7ff)
+        doc: |
+          Since protocol version 18.
+          Must be set for "telemetry_ack" messages. Indicates size of payload.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
@@ -337,13 +346,74 @@ types:
         if: _root.header.block_type != enum_blocktype::not_a_block
         type: block_selector(_root.header.block_type_int)
 
+  msg_telemetry_req:
+    doc: Request node telemetry metrics
+
+  msg_telemetry_ack:
+    doc: Signed telemetry response
+    seq:
+      - id: signature
+        size: 256
+        doc: Signature
+      - id: nodeid
+        size: 256
+        doc: Public node id
+      - id: blockcount
+        size: 64
+        doc: Block count
+      - id: cementedcount
+        size: 64
+        doc: Cemented block count
+      - id: uncheckedcount
+        size: 64
+        doc: Unchecked block count
+      - id: accountcount
+        size: 64
+        doc: Account count
+      - id: bandwidthcap
+        size: 64
+        doc: Bandwidth limit, 0 indiciates unlimited
+      - id: uptime
+        size: 64
+        doc: Length of time a peer has been running for (in seconds)
+      - id: peercount
+        size: 32
+        doc: Peer count
+      - id: protocolversion
+        size: 8
+        doc: Protocol version
+      - id: genesisblock
+        size: 256
+        doc: Genesis block hash
+      - id: majorversion
+        size: 8
+        doc: Major version
+      - id: minorversion
+        size: 8
+        doc: Minor version
+      - id: patchversion
+        size: 8
+        doc: Patch version
+      - id: prereleaseversion
+        size: 8
+        doc: Pre-release version
+      - id: maker
+        size: 8
+        doc: Maker version. 0 indicates it is from the Nano Foundation, there is no standardised list yet for any others.
+      - id: timestamp
+        size: 64
+        doc: Number of milliseconds since the UTC epoch
+      - id: activedifficulty
+        size: 64
+        doc: The current network active difficulty.
+
   msg_publish:
     doc: Publish the given block
     seq:
       - id: body
         type: block_selector(_root.header.block_type_int)
 
-  # Note that graphviz will display query/response as consequtive entries
+  # Note that graphviz will display query/response as consecutive entries
   # since they can both be present at the same time.
   msg_node_id_handshake:
     doc: A node ID handshake request and/or response.
