@@ -130,7 +130,7 @@ types:
           Since protocol version 15.
           May be set for "bulk_pull" messages.
           If set, the bulk_pull message contain extended parameters.
-      size:
+      telemetry_size:
         value: (extensions & 0x7ff)
         doc: |
           Since protocol version 18.
@@ -353,58 +353,58 @@ types:
     doc: Signed telemetry response
     seq:
       - id: signature
-        size: 256
-        doc: Signature
-      - id: nodeid
-        size: 256
-        doc: Public node id
-      - id: blockcount
         size: 64
+        doc: Signature (Big endian)
+      - id: nodeid
+        size: 32
+        doc: Public node id (Big endian)
+      - id: blockcount
+        type: u8be
         doc: Block count
       - id: cementedcount
-        size: 64
+        type: u8be
         doc: Cemented block count
       - id: uncheckedcount
-        size: 64
+        type: u8be
         doc: Unchecked block count
       - id: accountcount
-        size: 64
+        type: u8be
         doc: Account count
       - id: bandwidthcap
-        size: 64
+        type: u8be
         doc: Bandwidth limit, 0 indiciates unlimited
       - id: uptime
-        size: 64
+        type: u8be
         doc: Length of time a peer has been running for (in seconds)
       - id: peercount
-        size: 32
+        type: u4be
         doc: Peer count
       - id: protocolversion
-        size: 8
+        type: u1
         doc: Protocol version
       - id: genesisblock
-        size: 256
-        doc: Genesis block hash
+        size: 32
+        doc: Genesis block hash (Big endian)
       - id: majorversion
-        size: 8
+        type: u1
         doc: Major version
       - id: minorversion
-        size: 8
+        type: u1
         doc: Minor version
       - id: patchversion
-        size: 8
+        type: u1
         doc: Patch version
       - id: prereleaseversion
-        size: 8
+        type: u1
         doc: Pre-release version
       - id: maker
-        size: 8
+        type: u1
         doc: Maker version. 0 indicates it is from the Nano Foundation, there is no standardised list yet for any others.
       - id: timestamp
-        size: 64
+        type: u8be
         doc: Number of milliseconds since the UTC epoch
       - id: activedifficulty
-        size: 64
+        type: u8be
         doc: The current network active difficulty.
 
   msg_publish:
