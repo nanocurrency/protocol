@@ -470,7 +470,7 @@ types:
       - id: pending_entry
         type: bulk_pull_account_entry(flags)
         repeat: until
-        repeat-until: _io.eof or entry[_index].hash == _root.const_block_zero
+        repeat-until: _io.eof or pending_entry[_index].hash == _root.const_block_zero
     types:
       frontier_balance_entry:
         seq:
