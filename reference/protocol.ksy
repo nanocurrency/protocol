@@ -296,12 +296,12 @@ types:
         type: u8le
 
   vote_by_hash:
-    doc: A sequence of up to 12 hashes, terminated by EOF.
+    doc: A sequence of hashes, where count is read from header.
     seq:
       - id: hashes
         size: 32
         repeat: until
-        repeat-until: _index == 12 or _io.eof
+        repeat-until: _index == _root.header.item_count_int or _io.eof
         if: not _io.eof
 
   hash_pair:
@@ -465,15 +465,25 @@ types:
       - id: flags
         type: u1
     seq:
-      - id: entry
+      - id: frontier_entry
+        type: frontier_balance_entry
+      - id: pending_entry
         type: bulk_pull_account_entry(flags)
         repeat: until
         repeat-until: _io.eof or entry[_index].hash == _root.const_block_zero
     types:
+      frontier_balance_entry:
+        seq:
+          - id: frontier_hash
+            size: 32
+            doc: Hash of the head block of the account chain.
+          - id: balance
+            size: 16
+            doc: 128-bit big endian account balance.
       bulk_pull_account_entry:
         params:
           - id: flags
-            type: u1        
+            type: u1
         instances:
           pending_address_only:
             value: flags == enum_bulk_pull_account::pending_address_only.to_i
@@ -488,7 +498,7 @@ types:
             if: not pending_address_only
           - id: source
             size: 32
-            if: not pending_address_only or pending_include_address
+            if: pending_address_only or pending_include_address
             
   msg_bulk_pull:
     doc: Bulk pull request.
