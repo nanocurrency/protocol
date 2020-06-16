@@ -20,7 +20,7 @@ seq:
         'enum_msgtype::publish': msg_publish
         'enum_msgtype::confirm_req': msg_confirm_req
         'enum_msgtype::confirm_ack': msg_confirm_ack
-        'enum_msgtype::bulk_pull': msg_bulk_pull        
+        'enum_msgtype::bulk_pull': msg_bulk_pull
         'enum_msgtype::bulk_push': msg_bulk_push
         'enum_msgtype::frontier_req': msg_frontier_req
         'enum_msgtype::bulk_pull_blocks': msg_bulk_pull_blocks
@@ -162,7 +162,7 @@ types:
        doc: 128-bit big endian balance
      - id: signature
        size: 64
-       doc: ed25519 signature
+       doc: ed25519-blake2b signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -177,7 +177,7 @@ types:
        doc: Hash of the source send block
      - id: signature
        size: 64
-       doc: ed25519 signature
+       doc: ed25519-blake2b signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -195,7 +195,7 @@ types:
        doc: Public key of account being opened
      - id: signature
        size: 64
-       doc: ed25519 signature
+       doc: ed25519-blake2b signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -210,7 +210,7 @@ types:
        doc: Public key of new representative account
      - id: signature
        size: 64
-       doc: ed25519 signature
+       doc: ed25519-blake2b signature
      - id: work
        type: u8le
        doc: Proof of work
@@ -234,7 +234,7 @@ types:
        doc: Pairing send's block hash (open/receive), 0 (change) or destination public key (send)
      - id: signature
        size: 64
-       doc: ed25519 signature
+       doc: ed25519-blake2b signature
      - id: work
        type: u8be
        doc: Proof of work (big endian)
