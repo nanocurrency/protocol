@@ -36,7 +36,7 @@ instances:
 enums:
   # The protocol version covered by this specification
   protocol_version:
-    17: value
+    18: value
   enum_blocktype:
     0x00: invalid
     0x01: not_a_block
