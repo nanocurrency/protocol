@@ -131,7 +131,7 @@ types:
           May be set for "bulk_pull" messages.
           If set, the bulk_pull message contain extended parameters.
       telemetry_size:
-        value: (extensions & 0x7ff)
+        value: (extensions & 0x3ff)
         doc: |
           Since protocol version 18.
           Must be set for "telemetry_ack" messages. Indicates size of payload.
