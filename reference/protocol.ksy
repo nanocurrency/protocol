@@ -135,6 +135,12 @@ types:
         doc: |
           Since protocol version 18.
           Must be set for "telemetry_ack" messages. Indicates size of payload.
+      confirmed_present:
+        value: (extensions & 0x0002)
+        doc: |
+          Since protocol version 18 (release 21.3).
+          May be set for "frontier_req" messages.
+          If set, the frontier_req response contains confirmed frontiers for each account.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
