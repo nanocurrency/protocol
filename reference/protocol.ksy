@@ -379,15 +379,15 @@ types:
       - id: bandwidthcap
         type: u8be
         doc: Bandwidth limit, 0 indiciates unlimited
-      - id: uptime
-        type: u8be
-        doc: Length of time a peer has been running for (in seconds)
       - id: peercount
         type: u4be
         doc: Peer count
       - id: protocolversion
         type: u1
         doc: Protocol version
+      - id: uptime
+        type: u8be
+        doc: Length of time a peer has been running for (in seconds)
       - id: genesisblock
         size: 32
         doc: Genesis block hash (Big endian)
