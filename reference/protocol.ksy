@@ -23,7 +23,6 @@ seq:
         'enum_msgtype::bulk_pull': msg_bulk_pull
         'enum_msgtype::bulk_push': msg_bulk_push
         'enum_msgtype::frontier_req': msg_frontier_req
-        'enum_msgtype::bulk_pull_blocks': msg_bulk_pull_blocks
         'enum_msgtype::node_id_handshake': msg_node_id_handshake
         'enum_msgtype::bulk_pull_account': msg_bulk_pull_account
         'enum_msgtype::telemetry_req': msg_telemetry_req
@@ -55,11 +54,10 @@ enums:
     0x06: bulk_pull
     0x07: bulk_push
     0x08: frontier_req
-    0x09: bulk_pull_blocks
-    0x0a: node_id_handshake
-    0x0b: bulk_pull_account
-    0x0c: telemetry_req
-    0x0d: telemetry_ack
+    0x09: node_id_handshake
+    0x0a: bulk_pull_account
+    0x0b: telemetry_req
+    0x0c: telemetry_ack
   enum_bulk_pull_account:
     0x00: pending_hash_and_amount
     0x01: pending_address_only
@@ -269,7 +267,7 @@ types:
             _: ignore_until_eof
 
   # --------------------------------------------------------------------
-  # UDP MESSAGES
+  # LIVE MESSAGES
   # --------------------------------------------------------------------
 
   peer:
@@ -300,6 +298,8 @@ types:
         size: 64
       - id: sequence
         type: u8le
+      - id: timestamp
+        size: 64
 
   vote_by_hash:
     doc: A sequence of hashes, where count is read from header.
@@ -567,12 +567,6 @@ types:
 
   bulk_push_response:
     doc: The msg_bulk_push request does not have a response.
-
-  msg_bulk_pull_blocks:
-    doc: Deprecated. The server will respond with a single enum_blocktype::not_a_block byte.
-    seq:
-      - id: block_type
-        type: u1
 
   msg_frontier_req:
     doc: Request frontiers (account chain head blocks) from a remote node
