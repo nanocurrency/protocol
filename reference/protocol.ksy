@@ -54,10 +54,10 @@ enums:
     0x06: bulk_pull
     0x07: bulk_push
     0x08: frontier_req
-    0x09: node_id_handshake
-    0x0a: bulk_pull_account
-    0x0b: telemetry_req
-    0x0c: telemetry_ack
+    0x0a: node_id_handshake
+    0x0b: bulk_pull_account
+    0x0c: telemetry_req
+    0x0d: telemetry_ack
   enum_bulk_pull_account:
     0x00: pending_hash_and_amount
     0x01: pending_address_only
@@ -296,8 +296,6 @@ types:
         size: 32
       - id: signature
         size: 64
-      - id: sequence
-        type: u8le
       - id: timestamp
         size: 64
 
