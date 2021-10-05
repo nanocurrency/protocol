@@ -297,7 +297,7 @@ types:
       - id: signature
         size: 64
       - id: timestamp
-        size: 64
+        type: u8le
 
   vote_by_hash:
     doc: A sequence of hashes, where count is read from header.
