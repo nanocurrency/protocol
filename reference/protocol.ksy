@@ -410,6 +410,11 @@ types:
       - id: activedifficulty
         type: u8be
         doc: The current network active difficulty.
+      - id: unknown_data
+        type: u8
+        repeat: until
+        repeat-until: _io.pos == _root.header.telemetry_size
+        if: _io.pos < _root.header.telemetry_size
 
   msg_publish:
     doc: Publish the given block
