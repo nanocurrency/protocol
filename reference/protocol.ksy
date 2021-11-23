@@ -23,7 +23,6 @@ seq:
         'enum_msgtype::bulk_pull': msg_bulk_pull
         'enum_msgtype::bulk_push': msg_bulk_push
         'enum_msgtype::frontier_req': msg_frontier_req
-        'enum_msgtype::bulk_pull_blocks': msg_bulk_pull_blocks
         'enum_msgtype::node_id_handshake': msg_node_id_handshake
         'enum_msgtype::bulk_pull_account': msg_bulk_pull_account
         'enum_msgtype::telemetry_req': msg_telemetry_req
@@ -55,7 +54,6 @@ enums:
     0x06: bulk_pull
     0x07: bulk_push
     0x08: frontier_req
-    0x09: bulk_pull_blocks
     0x0a: node_id_handshake
     0x0b: bulk_pull_account
     0x0c: telemetry_req
@@ -269,7 +267,7 @@ types:
             _: ignore_until_eof
 
   # --------------------------------------------------------------------
-  # UDP MESSAGES
+  # LIVE MESSAGES
   # --------------------------------------------------------------------
 
   peer:
@@ -298,7 +296,7 @@ types:
         size: 32
       - id: signature
         size: 64
-      - id: sequence
+      - id: timestamp
         type: u8le
 
   vote_by_hash:
@@ -379,15 +377,15 @@ types:
       - id: bandwidthcap
         type: u8be
         doc: Bandwidth limit, 0 indiciates unlimited
-      - id: uptime
-        type: u8be
-        doc: Length of time a peer has been running for (in seconds)
       - id: peercount
         type: u4be
         doc: Peer count
       - id: protocolversion
         type: u1
         doc: Protocol version
+      - id: uptime
+        type: u8be
+        doc: Length of time a peer has been running for (in seconds)
       - id: genesisblock
         size: 32
         doc: Genesis block hash (Big endian)
@@ -412,6 +410,11 @@ types:
       - id: activedifficulty
         type: u8be
         doc: The current network active difficulty.
+      - id: unknown_data
+        type: u8
+        repeat: until
+        repeat-until: _io.pos == _root.header.telemetry_size
+        if: _io.pos < _root.header.telemetry_size
 
   msg_publish:
     doc: Publish the given block
@@ -567,12 +570,6 @@ types:
 
   bulk_push_response:
     doc: The msg_bulk_push request does not have a response.
-
-  msg_bulk_pull_blocks:
-    doc: Deprecated. The server will respond with a single enum_blocktype::not_a_block byte.
-    seq:
-      - id: block_type
-        type: u1
 
   msg_frontier_req:
     doc: Request frontiers (account chain head blocks) from a remote node
