@@ -296,9 +296,15 @@ types:
         size: 32
       - id: signature
         size: 64
-      - id: timestamp
+      - id: timestamp_and_vote_duration
         type: u8le
-        doc: Number of seconds since the UTC epoch. Duration field in milliseconds is specified in the 4 low-order bits of the timestamp, specified as 2^(duration + 4).
+    instances:
+        timestamp:
+          value: (timestamp_and_vote_duration >> 4)
+          doc: Number of seconds since the UTC epoch vote was generated at
+        vote_duration:
+          value: (timestamp_and_vote_duration & 0xf)
+          doc: Since V23.0 this is specified as 2^(duration + 4) in milliseconds
 
   vote_by_hash:
     doc: A sequence of hashes, where count is read from header.
