@@ -298,6 +298,7 @@ types:
         size: 64
       - id: timestamp
         type: u8le
+        doc: Number of seconds since the UTC epoch. Duration field in milliseconds is specified in the 4 low-order bits of the timestamp, specified as 2^(duration + 4).
 
   vote_by_hash:
     doc: A sequence of hashes, where count is read from header.
