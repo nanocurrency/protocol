@@ -296,8 +296,15 @@ types:
         size: 32
       - id: signature
         size: 64
-      - id: timestamp
+      - id: timestamp_and_vote_duration
         type: u8le
+    instances:
+        timestamp:
+          value: (timestamp_and_vote_duration & 0xfffffffffffffff0)
+          doc: Number of seconds since the UTC epoch vote was generated at
+        vote_duration_bits:
+          value: (timestamp_and_vote_duration & 0xf)
+          doc: Since V23.0 this is specified as 2^(duration + 4) in milliseconds
 
   vote_by_hash:
     doc: A sequence of hashes, where count is read from header.
