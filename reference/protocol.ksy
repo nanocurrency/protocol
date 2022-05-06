@@ -139,6 +139,12 @@ types:
           Since protocol version 18 (release 21.3).
           May be set for "frontier_req" messages.
           If set, the frontier_req response contains confirmed frontiers for each account.
+      ascending_present:
+        value: (extensions & 0x0002)
+        doc: |
+          Since protocol version 18.
+          May be set for "bulk_pull" messages.
+          If set, server will respond with succesor blocks.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
