@@ -144,7 +144,7 @@ types:
         doc: |
           Since protocol version 18.
           May be set for "bulk_pull" messages.
-          If set, server will respond with succesor blocks.
+          If set, server will respond with successor blocks.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
