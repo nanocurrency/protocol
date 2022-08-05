@@ -139,6 +139,12 @@ types:
           Since protocol version 18 (release 21.3).
           May be set for "frontier_req" messages.
           If set, the frontier_req response contains confirmed frontiers for each account.
+      bulk_pull_ascending_flag:
+        value: (extensions & 0x0002)
+        doc: |
+          Since protocol version 19 (release 24).
+          May be set for "bulk_pull" messages.
+          If set, it reverses the order in which bulk_pull returns blocks. It returns the frontier block last.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
