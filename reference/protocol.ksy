@@ -290,7 +290,7 @@ types:
         if: not _io.eof
 
   vote_common:
-    doc: Common data shared by block votes and vote-by-hash votes
+    doc: Common data shared by votes
     seq:
       - id: account
         size: 32
@@ -346,16 +346,12 @@ types:
         type: block_selector(_root.header.block_type_int)
 
   msg_confirm_ack:
-    doc: Signed confirmation of a block or a list of block hashes
+    doc: Signed confirmation of a list of block hashes
     seq:
       - id: common
         type: vote_common
       - id: votebyhash
-        if: _root.header.block_type == enum_blocktype::not_a_block
         type: vote_by_hash
-      - id: block
-        if: _root.header.block_type != enum_blocktype::not_a_block
-        type: block_selector(_root.header.block_type_int)
 
   msg_telemetry_req:
     doc: Request node telemetry metrics
