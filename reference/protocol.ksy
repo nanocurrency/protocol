@@ -71,7 +71,7 @@ types:
 
   # -------------------------------------------------------------------
   # Common header for udp and tcp messages
-  # -------------------------------------------------------------------  
+  # -------------------------------------------------------------------
   message_header:
     seq:
       - id: magic
@@ -438,7 +438,7 @@ types:
     seq:
       - id: query
         if: _root.header.query_flag != 0
-        type: node_id_query        
+        type: node_id_query
       - id: response
         if: _root.header.response_flag != 0
         type: node_id_response
@@ -474,10 +474,10 @@ types:
       - id: flags
         type: u1
         enum: enum_bulk_pull_account
-  
+
   bulk_pull_account_response:
     doc: |
-      Response of the msg_bulk_pull_account message. The structure depends on the 
+      Response of the msg_bulk_pull_account message. The structure depends on the
       flags that was passed to the query.
     params:
       - id: flags
@@ -517,7 +517,7 @@ types:
           - id: source
             size: 32
             if: pending_address_only or pending_include_address
-            
+
   msg_bulk_pull:
     doc: Bulk pull request.
     seq:
