@@ -27,6 +27,8 @@ seq:
         'enum_msgtype::bulk_pull_account': msg_bulk_pull_account
         'enum_msgtype::telemetry_req': msg_telemetry_req
         'enum_msgtype::telemetry_ack': msg_telemetry_ack
+        'enum_msgtype::asc_pull_req': msg_asc_pull_req
+        'enum_msgtype::asc_pull_ack': msg_asc_pull_ack
         _: ignore_until_eof
 instances:
   const_block_zero:
@@ -58,6 +60,8 @@ enums:
     0x0b: bulk_pull_account
     0x0c: telemetry_req
     0x0d: telemetry_ack
+    0x0e: asc_pull_req
+    0x0f: asc_pull_ack
   enum_bulk_pull_account:
     0x00: pending_hash_and_amount
     0x01: pending_address_only
@@ -66,6 +70,13 @@ enums:
     0x41: network_test
     0x42: network_beta
     0x43: network_live
+  enum_asc_pull_type:
+    0x00: invalid
+    0x01: block_pull_type
+    0x02: account_pull_type
+  enum_asc_hash_type:
+    0x00: account_hash_type
+    0x01: block_hash_type
 
 types:
 
@@ -145,6 +156,11 @@ types:
           Since protocol version 19 (release 24).
           May be set for "bulk_pull" messages.
           If set, it reverses the order in which bulk_pull returns blocks. It returns the frontier block last.
+      asc_pull_size:
+        value: (extensions & 0xffff)
+        doc: |
+          Since protocol version 19 (release 24)
+          Must be set for "ascending pull messages" messages. Indicates size of payload of ascending pull message.
 
   # Catch-all that ignores until eof
   ignore_until_eof:
@@ -610,3 +626,113 @@ types:
           - id: frontier_hash
             size: 32
             doc: Hash of the head block of the account chain.
+
+  asc_pull_base:
+    doc: |
+      Ascending pull sub-header, data common in asc pull packets.
+    seq:
+      - id: type
+        type: u1
+        enum: enum_asc_pull_type
+      - id: id
+        type: u8be
+        doc: An identifier to associate replies with requests
+
+  msg_asc_pull_req:
+    doc: ascending pull request
+    seq:
+      - id: base
+        type: asc_pull_base
+      - id: payload
+        type: asc_pull_req_payload
+        size: _root.header.asc_pull_size
+    types:
+      account_info_req_payload:
+        doc: ascend pull request acount info payload
+        seq:
+          - id: start
+            size: 32
+            doc: block hash or account pubkey to pull from
+          - id: start_type
+            type: u1
+            enum: enum_asc_hash_type
+
+      blocks_req_payload:
+        doc: ascend pull request block payload
+        seq:
+          - id: start
+            size: 32
+            doc: block hash or account pubkey to pull from
+          - id: count
+            type: u1
+            doc: max number of blocks to pull
+          - id: start_type
+            type: u1
+            enum: enum_asc_hash_type
+
+      asc_pull_req_payload:
+        doc: payload of ascend pull requests
+        seq:
+          - id: account_info
+            if: _parent.base.type == enum_asc_pull_type::account_pull_type
+            type: account_info_req_payload
+          - id: blocks
+            if: _parent.base.type == enum_asc_pull_type::block_pull_type
+            type: blocks_req_payload
+
+  msg_asc_pull_ack:
+    doc: ascending pull response
+    seq:
+      - id: base
+        type: asc_pull_base
+      - id: payload
+        type: asc_pull_ack_payload
+        size: _root.header.asc_pull_size
+    types:
+      account_info_ack_payload:
+        doc: ascend pull response account info payload
+        seq:
+          - id: account
+            size: 32
+            doc: account being pulled
+          - id: account_open
+            size: 32
+            doc: opening block of account
+          - id: account_head
+            size: 32
+            doc: block with highest height (can be confirmed or unconfirmed)
+          - id: block_count
+            type: u8be
+            doc: number of blocks in account (counts confirmed and unconfirmed blocks)
+          - id: conf_frontier
+            size: 32
+            doc: block hash of confirmation frontier, confirmed block with highest height
+          - id: conf_height
+            type: u8be
+            doc: Height of highest confirmed block
+
+      blocks_ack_payload:
+        doc: ascend pull response block payload
+        seq:
+          - id: entry
+            type: asc_pull_entry
+            repeat: until
+            repeat-until: _io.eof or _.block_type == enum_blocktype::not_a_block.to_i
+        types:
+          asc_pull_entry:
+            seq:
+              - id: block_type
+                type: u1
+              - id: block
+                type: block_selector(block_type)
+
+      asc_pull_ack_payload:
+        doc: payload of ascend pull responses
+        seq:
+          - id: account_info
+            if: _parent.base.type == enum_asc_pull_type::account_pull_type
+            type: account_info_ack_payload
+          - id: blocks
+            if: _parent.base.type == enum_asc_pull_type::block_pull_type
+            type: blocks_ack_payload
+
